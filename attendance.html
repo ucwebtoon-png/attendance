@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>출석 체크</title>
+</head>
+<body>
+  <h3 id="msg">위치 확인 중...</h3>
+
+<script>
+  const BASE_LAT = 129.31136596;  // 회사/학원 위도
+  const BASE_LON = 35.5383773; // 회사/학원 경도
+  const ALLOW_RADIUS = 4000;  // 허용 반경(미터)
+
+  function distance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(toRad(lat1)) *
+              Math.cos(toRad(lat2)) *
+              Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      if (accuracy > 50) {
+        document.getElementById("msg").innerText = 
+          "❌ 위치 정확도가 낮아 출석 불가";
+        return;
+      }
+
+      const d = distance(BASE_LAT, BASE_LON, latitude, longitude);
+      if (d > ALLOW_RADIUS) {
+        document.getElementById("msg").innerText =
+          "❌ 출석 실패: 현장 위치가 아닙니다";
+        return;
+      }
+
+      document.getElementById("msg").innerText = "✅ 출석 완료";
+    },
+    () => {
+      document.getElementById("msg").innerText =
+        "❌ 위치 권한이 필요합니다";
+    }
+  );
+</script>
+</body>
+</html>
