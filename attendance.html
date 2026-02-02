@@ -24,29 +24,36 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const { latitude, longitude, accuracy } = pos.coords;
-      if (accuracy > 50) {
-        document.getElementById("msg").innerText = 
-          "❌ 위치 정확도가 낮아 출석 불가";
-        return;
-      }
+  // 여기서 이름을 입력받고 서버에 출석 데이터 전송 시작
+    const userName = prompt("이름을 입력하세요");  // 사용자 이름 받기
 
-      const d = distance(BASE_LAT, BASE_LON, latitude, longitude);
-      if (d > ALLOW_RADIUS) {
-        document.getElementById("msg").innerText =
-          "❌ 출석 실패: 현장 위치가 아닙니다";
-        return;
+    fetch("여기에_복사한_AppsScript_URL_붙여넣기", {  // 1단계에서 복사한 URL
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: userName,
+        lat: latitude,
+        lon: longitude,
+        accuracy: accuracy
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        document.getElementById("msg").innerText = "✅ 출석 완료!";
+      } else {
+        document.getElementById("msg").innerText = "❌ 출석 실패";
       }
+    })
+    .catch(() => {
+      document.getElementById("msg").innerText = "❌ 기록 서버 오류";
+    });
 
-      document.getElementById("msg").innerText = "✅ 출석 완료";
-    },
-    () => {
-      document.getElementById("msg").innerText =
-        "❌ 위치 권한이 필요합니다";
-    }
-  );
-</script>
-</body>
-</html>
+  },
+  () => {
+    document.getElementById("msg").innerText = "❌ 위치 권한이 필요합니다";
+  }
+);
+
